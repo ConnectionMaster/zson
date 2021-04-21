@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 ZeoFlow
+ * Copyright (C) 2021 ZeoFlow
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.zeoflow.zson.stream.JsonReader;
 import com.zeoflow.zson.annotations.Expose;
 
 import static com.zeoflow.zson.Zson.DEFAULT_COMPLEX_MAP_KEYS;
+import static com.zeoflow.zson.Zson.DEFAULT_DESERIALIZE_NULLS;
 import static com.zeoflow.zson.Zson.DEFAULT_ESCAPE_HTML;
 import static com.zeoflow.zson.Zson.DEFAULT_JSON_NON_EXECUTABLE;
 import static com.zeoflow.zson.Zson.DEFAULT_LENIENT;
@@ -61,7 +62,7 @@ import static com.zeoflow.zson.Zson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
  *     .setPrettyPrinting()
  *     .setVersion(1.0)
  *     .create();
- * </pre></p>
+ * </pre>
  *
  * <p>NOTES:
  * <ul>
@@ -70,7 +71,6 @@ import static com.zeoflow.zson.Zson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
  *  not contain time-zone information. So, if you are using date/time instances,
  *  use {@code ZsonBuilder} and its {@code setDateFormat} methods.</li>
  *  </ul>
- * </p>
  *
  * @author Inderjeet Singh
  * @author Joel Leitch
@@ -92,6 +92,7 @@ public final class ZsonBuilder
   private int timeStyle = DateFormat.DEFAULT;
   private boolean complexMapKeySerialization = DEFAULT_COMPLEX_MAP_KEYS;
   private boolean serializeSpecialFloatingPointValues = DEFAULT_SPECIALIZE_FLOAT_VALUES;
+  private boolean deserializeNulls = DEFAULT_DESERIALIZE_NULLS;
   private boolean escapeHtmlChars = DEFAULT_ESCAPE_HTML;
   private boolean prettyPrinting = DEFAULT_PRETTY_PRINT;
   private boolean generateNonExecutableJson = DEFAULT_JSON_NON_EXECUTABLE;
@@ -117,6 +118,7 @@ public final class ZsonBuilder
     this.fieldNamingPolicy = zson.fieldNamingStrategy;
     this.instanceCreators.putAll(zson.instanceCreators);
     this.serializeNulls = zson.serializeNulls;
+    this.deserializeNulls = zson.deserializeNulls;
     this.complexMapKeySerialization = zson.complexMapKeySerialization;
     this.generateNonExecutableJson = zson.generateNonExecutableJson;
     this.escapeHtmlChars = zson.htmlSafe;
@@ -197,6 +199,18 @@ public final class ZsonBuilder
   }
 
   /**
+   * Configure Zson to deserialize null fields. By default, Zson don't omits all fields that are null
+   * during deserialization.
+   *
+   * @return a reference to this {@code ZsonBuilder} object to fulfill the "Builder" pattern
+   * @since 2.8
+   */
+  public ZsonBuilder deserializeNulls(boolean deserialize) {
+    this.deserializeNulls = deserialize;
+    return this;
+  }
+
+  /**
    * Enabling this feature will only change the serialized form if the map key is
    * a complex type (i.e. non-primitive) in its <strong>serialized</strong> JSON
    * form. The default implementation of map serialization uses {@code toString()}
@@ -247,7 +261,7 @@ public final class ZsonBuilder
    *   original.put(new Point(5, 6), "a");
    *   original.put(new Point(8, 8), "b");
    *   System.out.println(Zson.toJson(original, type));
-   * }
+   * }</pre>
    *
    * The JSON output would look as follows:
    * <pre>   {@code
@@ -597,7 +611,7 @@ public final class ZsonBuilder
     addTypeAdaptersForDate(datePattern, dateStyle, timeStyle, factories);
 
     return new Zson(excluder, fieldNamingPolicy, instanceCreators,
-        serializeNulls, complexMapKeySerialization,
+        serializeNulls, deserializeNulls, complexMapKeySerialization,
         generateNonExecutableJson, escapeHtmlChars, prettyPrinting, lenient,
         serializeSpecialFloatingPointValues, longSerializationPolicy,
         datePattern, dateStyle, timeStyle,
